@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>College Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+</head>
+<body data-auth="out">
+  <div class="shell">
+
+    <aside class="sidebar">
+      <a class="brand" href="#colleges">
+        <span class="brand-mark" aria-hidden="true">C</span>
+        College Management
+      </a>
+
+      <nav class="nav" aria-label="Main">
+        <a href="#colleges" data-view="colleges">Colleges</a>
+        <a href="#departments" data-view="departments">Departments</a>
+        <a href="#students" data-view="students">Students</a>
+        <a href="#courses" data-view="courses">Courses</a>
+        <a href="#enrollments" data-view="enrollments">Enrollments</a>
+        <a href="#reports" data-view="reports">Reports</a>
+      </nav>
+
+      <div class="session">
+        <div data-show="out">You are not signed in.</div>
+        <div data-show="in">
+          <div class="session-user">
+            <span class="avatar" id="avatar"></span>
+            <div>
+              <div class="session-name" id="sessionName"></div>
+              <span class="role-pill" id="sessionRole"></span>
+            </div>
+          </div>
+          <button type="button" class="btn-ghost" id="btnSignOut">Sign out</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="content">
+
+        <p id="message" class="alert" role="alert"></p>
+        <p id="notice" class="notice" role="status"></p>
+
+        <!-- ===================== COLLEGES ===================== -->
+        <section class="view" id="view-colleges">
+
+          <header class="page-head" data-show="out">
+            <h1>Sign in to College Management</h1>
+            <p>Use your staff account to manage colleges, departments, students, courses and enrollments, and to open reports.</p>
+          </header>
+
+          <header class="page-head" data-show="in">
+            <h1>Colleges</h1>
+            <p>Add a college, correct its student count, or remove it.</p>
+          </header>
+
+          <!-- Signed out: sign in or create an account -->
+          <section class="panel auth" data-show="out">
+            <div class="tabs" role="tablist">
+              <button type="button" class="tab" role="tab" aria-selected="true" data-target="loginForm">Sign in</button>
+              <button type="button" class="tab" role="tab" aria-selected="false" data-target="registerForm">Create account</button>
+            </div>
+
+            <p id="authMessage" class="alert" role="alert"></p>
+            <p id="authNotice" class="notice" role="status"></p>
+
+            <form id="loginForm" class="stack">
+              <div class="field">
+                <label for="user">Username</label>
+                <input id="user" autocomplete="username" required />
+              </div>
+              <div class="field">
+                <label for="password">Password</label>
+                <input id="password" type="password" autocomplete="current-password" required />
+              </div>
+              <button type="submit" class="btn">Sign in</button>
+            </form>
+
+            <form id="registerForm" class="stack" hidden>
+              <div class="field">
+                <label for="newUser">Choose a username</label>
+                <input id="newUser" autocomplete="username" required />
+              </div>
+              <div class="field">
+                <label for="newPassword">Choose a password</label>
+                <input id="newPassword" type="password" autocomplete="new-password" required />
+              </div>
+              <p class="panel-sub" style="margin:0;">New accounts can view, add and edit. Only an admin can delete.</p>
+              <button type="submit" class="btn">Create account</button>
+            </form>
+          </section>
+
+          <!-- Signed in: add or edit a college -->
+          <section class="panel" data-show="in">
+            <h2 id="collegeTitle">Add a college</h2>
+            <p class="panel-sub" id="collegeHint">If the college and department already exist, the number you enter is added to the existing count.</p>
+            <form id="collegeForm" class="form-row">
+              <div class="field">
+                <label for="collegeName">College name</label>
+                <input id="collegeName" placeholder="e.g. Madras Institute" maxlength="100" required />
+              </div>
+              <div class="field">
+                <label for="collegeDept">Department</label>
+                <input id="collegeDept" placeholder="e.g. CSE" maxlength="100" required />
+              </div>
+              <div class="field">
+                <label for="collegeCount">Students</label>
+                <input id="collegeCount" type="number" min="1" max="100000" placeholder="e.g. 120" required />
+              </div>
+              <div class="form-actions">
+                <button type="submit" class="btn" id="collegeSave">Add college</button>
+                <button type="button" class="btn-quiet" id="collegeCancel" hidden>Cancel</button>
+              </div>
+            </form>
+          </section>
+
+          <!-- Always visible: the list -->
+          <section class="panel">
+            <h2>All colleges</h2>
+            <p class="panel-sub">Every college and department, with its current student count.</p>
+            <div class="table-wrap">
+              <table id="collegesTable" class="id-first">
+                <thead>
+                  <tr>
+                    <th>Id</th>
+                    <th>College</th>
+                    <th>Department</th>
+                    <th>Students</th>
+                    <th class="col-action">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="collegeBody"></tbody>
+              </table>
+            </div>
+            <p class="empty-note" id="collegeEmpty">No colleges to show yet.</p>
+          </section>
+
+        </section>
+
+        <!-- ===================== DEPARTMENTS ===================== -->
+        <section class="view" id="view-departments">
+
+          <header class="page-head">
+            <h1>Departments</h1>
+            <p>Every department belongs to a college. Students and courses belong to a department.</p>
+          </header>
+
+          <section class="panel auth" data-show="out">
+            <h2>Sign in to manage departments</h2>
+            <p class="panel-sub">Departments are only available to signed-in users.</p>
+            <a class="btn" href="#colleges" style="display:inline-block; text-decoration:none;">Go to sign in</a>
+          </section>
+
+          <div data-show="in">
+            <section class="panel">
+              <h2 id="departmentTitle">Add a department</h2>
+              <p class="panel-sub">Pick the college this department belongs to.</p>
+              <form id="departmentForm" class="form-row fr-department">
+                <div class="field">
+                  <label for="departmentName">Department name</label>
+                  <input id="departmentName" placeholder="e.g. Mechanical" maxlength="100" required />
+                </div>
+                <div class="field">
+                  <label for="departmentCollege">College</label>
+                  <select id="departmentCollege" required>
+                    <option value="">Choose a college</option>
+                  </select>
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="btn" id="departmentSave">Add department</button>
+                  <button type="button" class="btn-quiet" id="departmentCancel" hidden>Cancel</button>
+                </div>
+              </form>
+            </section>
+
+            <section class="panel">
+              <h2>All departments</h2>
+              <p class="panel-sub">Only an admin can delete.</p>
+              <div class="table-wrap">
+                <table id="departmentsTable" class="id-first">
+                  <thead>
+                    <tr><th>Id</th><th>Department</th><th>College</th><th class="col-action">Action</th></tr>
+                  </thead>
+                  <tbody id="departmentBody"></tbody>
+                </table>
+              </div>
+              <p class="empty-note" id="departmentEmpty">No departments yet. Add the first one above.</p>
+            </section>
+          </div>
+
+        </section>
+
+        <!-- ===================== STUDENTS ===================== -->
+        <section class="view" id="view-students">
+
+          <header class="page-head">
+            <h1>Students</h1>
+            <p>Add, edit or remove students. The reports update as soon as the data changes.</p>
+          </header>
+
+          <section class="panel auth" data-show="out">
+            <h2>Sign in to manage students</h2>
+            <p class="panel-sub">Students are only available to signed-in users.</p>
+            <a class="btn" href="#colleges" style="display:inline-block; text-decoration:none;">Go to sign in</a>
+          </section>
+
+          <div data-show="in">
+            <section class="panel">
+              <h2 id="studentTitle">Add a student</h2>
+              <p class="panel-sub">Every student belongs to a department.</p>
+              <form id="studentForm" class="form-row fr-student">
+                <div class="field">
+                  <label for="studentName">Name</label>
+                  <input id="studentName" placeholder="e.g. Arun Kumar" maxlength="100" required />
+                </div>
+                <div class="field">
+                  <label for="studentEmail">Email</label>
+                  <input id="studentEmail" type="email" placeholder="e.g. arun@college.edu" maxlength="150" required />
+                </div>
+                <div class="field">
+                  <label for="studentDept">Department</label>
+                  <select id="studentDept" required>
+                    <option value="">Choose a department</option>
+                  </select>
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="btn" id="studentSave">Add student</button>
+                  <button type="button" class="btn-quiet" id="studentCancel" hidden>Cancel</button>
+                </div>
+              </form>
+            </section>
+
+            <section class="panel">
+              <h2>All students</h2>
+              <p class="panel-sub">Every student with their department. Only an admin can delete.</p>
+              <div class="table-wrap">
+                <table id="studentsTable" class="id-first">
+                  <thead>
+                    <tr><th>Id</th><th>Name</th><th>Email</th><th>Department</th><th class="col-action">Action</th></tr>
+                  </thead>
+                  <tbody id="studentBody"></tbody>
+                </table>
+              </div>
+              <p class="empty-note" id="studentEmpty">No students yet. Add the first one above.</p>
+            </section>
+          </div>
+
+        </section>
+
+        <!-- ===================== COURSES ===================== -->
+        <section class="view" id="view-courses">
+
+          <header class="page-head">
+            <h1>Courses</h1>
+            <p>Add, edit or remove courses. Every course belongs to a department.</p>
+          </header>
+
+          <section class="panel auth" data-show="out">
+            <h2>Sign in to manage courses</h2>
+            <p class="panel-sub">Courses are only available to signed-in users.</p>
+            <a class="btn" href="#colleges" style="display:inline-block; text-decoration:none;">Go to sign in</a>
+          </section>
+
+          <div data-show="in">
+            <section class="panel">
+              <h2 id="courseTitle">Add a course</h2>
+              <p class="panel-sub">Credits must be between 1 and 10.</p>
+              <form id="courseForm" class="form-row fr-course">
+                <div class="field">
+                  <label for="courseName">Course title</label>
+                  <input id="courseName" placeholder="e.g. Data Structures" maxlength="150" required />
+                </div>
+                <div class="field">
+                  <label for="courseCredits">Credits</label>
+                  <input id="courseCredits" type="number" min="1" max="10" placeholder="e.g. 4" required />
+                </div>
+                <div class="field">
+                  <label for="courseDept">Department</label>
+                  <select id="courseDept" required>
+                    <option value="">Choose a department</option>
+                  </select>
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="btn" id="courseSave">Add course</button>
+                  <button type="button" class="btn-quiet" id="courseCancel" hidden>Cancel</button>
+                </div>
+              </form>
+            </section>
+
+            <section class="panel">
+              <h2>All courses</h2>
+              <p class="panel-sub">Only an admin can delete.</p>
+              <div class="table-wrap">
+                <table id="coursesTable" class="id-first">
+                  <thead>
+                    <tr><th>Id</th><th>Course</th><th>Credits</th><th>Department</th><th class="col-action">Action</th></tr>
+                  </thead>
+                  <tbody id="courseBody"></tbody>
+                </table>
+              </div>
+              <p class="empty-note" id="courseEmpty">No courses yet. Add the first one above.</p>
+            </section>
+          </div>
+
+        </section>
+
+        <!-- ===================== ENROLLMENTS ===================== -->
+        <section class="view" id="view-enrollments">
+
+          <header class="page-head">
+            <h1>Enrollments</h1>
+            <p>Enroll a student in a course and record the grade. The report numbers change right away.</p>
+          </header>
+
+          <section class="panel auth" data-show="out">
+            <h2>Sign in to manage enrollments</h2>
+            <p class="panel-sub">Enrollments are only available to signed-in users.</p>
+            <a class="btn" href="#colleges" style="display:inline-block; text-decoration:none;">Go to sign in</a>
+          </section>
+
+          <div data-show="in">
+            <section class="panel">
+              <h2 id="enrollmentTitle">Enroll a student</h2>
+              <p class="panel-sub">A student can join the same course only once. Leave the grade empty until one is given.</p>
+              <form id="enrollmentForm" class="form-row">
+                <div class="field">
+                  <label for="enrollmentStudent">Student</label>
+                  <select id="enrollmentStudent" required>
+                    <option value="">Choose a student</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="enrollmentCourse">Course</label>
+                  <select id="enrollmentCourse" required>
+                    <option value="">Choose a course</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label for="enrollmentGrade">Grade (0 to 100)</label>
+                  <input id="enrollmentGrade" type="number" min="0" max="100" placeholder="optional" />
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="btn" id="enrollmentSave">Enroll student</button>
+                  <button type="button" class="btn-quiet" id="enrollmentCancel" hidden>Cancel</button>
+                </div>
+              </form>
+            </section>
+
+            <section class="panel">
+              <h2>All enrollments</h2>
+              <p class="panel-sub">Only an admin can delete.</p>
+              <div class="table-wrap">
+                <table id="enrollmentsTable" class="id-first">
+                  <thead>
+                    <tr><th>Id</th><th>Student</th><th>Course</th><th>Enrolled on</th><th>Grade</th><th class="col-action">Action</th></tr>
+                  </thead>
+                  <tbody id="enrollmentBody"></tbody>
+                </table>
+              </div>
+              <p class="empty-note" id="enrollmentEmpty">No enrollments yet. Enroll the first student above.</p>
+            </section>
+          </div>
+
+        </section>
+
+        <!-- ===================== REPORTS ===================== -->
+        <section class="view" id="view-reports">
+
+          <header class="page-head">
+            <h1>Reports</h1>
+            <p>How students, courses and grades are spread across your colleges.</p>
+          </header>
+
+          <section class="panel auth" data-show="out">
+            <h2>Sign in to see reports</h2>
+            <p class="panel-sub">Reports are only available to signed-in users.</p>
+            <a class="btn" href="#colleges" style="display:inline-block; text-decoration:none;">Go to sign in</a>
+          </section>
+
+          <div data-show="in">
+
+            <div class="grid-2">
+              <section class="panel">
+                <h2>Students by department</h2>
+                <p class="panel-sub">Students and courses in each department.</p>
+                <div class="table-wrap">
+                  <table class="num-last-2">
+                    <thead>
+                      <tr><th>College</th><th>Department</th><th>Students</th><th>Courses</th></tr>
+                    </thead>
+                    <tbody id="summaryBody"></tbody>
+                  </table>
+                </div>
+                <p class="empty-note" id="summaryEmpty">No departments yet.</p>
+              </section>
+
+              <section class="panel">
+                <h2>Largest colleges</h2>
+                <p class="panel-sub">The three colleges with the most students.</p>
+                <div class="table-wrap">
+                  <table class="num-last-1">
+                    <thead>
+                      <tr><th>Name</th><th>Dept</th><th>Students</th></tr>
+                    </thead>
+                    <tbody id="topBody"></tbody>
+                  </table>
+                </div>
+                <p class="empty-note" id="topEmpty">No colleges yet.</p>
+              </section>
+            </div>
+
+            <section class="panel">
+              <h2>Course enrollment</h2>
+              <p class="panel-sub">How many students joined each course and their average grade.</p>
+              <div class="table-wrap">
+                <table class="num-last-2">
+                  <thead>
+                    <tr><th>Course</th><th>Department</th><th>Enrolled</th><th>Average grade</th></tr>
+                  </thead>
+                  <tbody id="reportCourseBody"></tbody>
+                </table>
+              </div>
+              <p class="empty-note" id="reportCourseEmpty">No courses yet.</p>
+            </section>
+
+            <div class="grid-split">
+              <section class="panel">
+                <h2>Find a student</h2>
+                <p class="panel-sub">Search by name or email.</p>
+                <div class="search-row">
+                  <input id="reportSearch" placeholder="Search name or email" aria-label="Search name or email" />
+                  <button type="button" class="btn" id="btnReportSearch">Search</button>
+                </div>
+                <div class="table-wrap" style="margin-top:18px;">
+                  <table id="reportStudentsTable" class="id-first">
+                    <thead>
+                      <tr><th>Id</th><th>Name</th><th>Email</th><th>Department</th><th>Record</th></tr>
+                    </thead>
+                    <tbody id="reportStudentBody"></tbody>
+                  </table>
+                </div>
+                <p class="empty-note" id="reportStudentEmpty">No students match your search.</p>
+                <div class="pager">
+                  <button type="button" class="btn-quiet" id="btnPrev">Previous</button>
+                  <span id="pageInfo"></span>
+                  <button type="button" class="btn-quiet" id="btnNext">Next</button>
+                </div>
+              </section>
+
+              <section class="panel">
+                <h2>Student record</h2>
+                <p class="panel-sub">Courses, grades and average for one student.</p>
+                <div id="studentDetail"><p class="muted">Choose View on a student to see their record.</p></div>
+              </section>
+            </div>
+
+          </div>
+
+        </section>
+
+      </div>
+    </main>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
