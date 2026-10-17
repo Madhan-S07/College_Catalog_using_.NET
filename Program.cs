@@ -18,7 +18,10 @@ builder.Services.AddDbContext<AppDbContext>(Options =>
 });
 builder.Services.AddScoped<ICollegeService, CollegeService>();
 builder.Services.AddScoped<ILoginService, LoginService>();
-builder.Services.AddScoped<ICollegeRepository, CollegeRepository>();   // add this
+builder.Services.AddScoped<ICollegeRepository, CollegeRepository>(); 
+builder.Services.AddScoped<IReportRepository, ReportRepository>();
+builder.Services.AddScoped<IReportService, ReportService>();
+  // add this
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddCors(options =>
