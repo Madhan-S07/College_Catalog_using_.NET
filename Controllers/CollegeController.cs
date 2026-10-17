@@ -45,6 +45,17 @@ namespace CollegeManagementApi.Controllers
             return Ok("Student added");
         }
 
+        // PUT: edits one college (name, department, student count)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, CollegeResponseDTO dto)
+        {
+            var (college, error) = await st_s.UpdateCollege(id, dto);
+            if (error == "College not found") return NotFound(error);
+            if (error != null) return BadRequest(error);
+
+            return Ok(college);
+        }
+
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)

@@ -73,6 +73,38 @@ namespace CollegeManagementApi.Services
             return true;
         }
 
+        // PUT: replaces the name, department and count of one college
+        public async Task<(CollegeResponseDTO? College, string? Error)> UpdateCollege(int id, CollegeResponseDTO dto)
+        {
+            var college = await _repo.GetByIdAsync(id);
+            if (college == null)
+                return (null, "College not found");
+
+            var name = dto.Name.Trim();
+            var dept = dto.Dept.Trim();
+
+            // another row with the same name and department would become a duplicate
+            var duplicate = await _repo.FindByNameAndDeptAsync(name, dept);
+            if (duplicate != null && duplicate.Id != id)
+                return (null, "A college with this name and department already exists");
+
+            college.Name = name;
+            college.Dept = dept;
+            college.NO_Students = dto.No_Students;
+
+            await _repo.SaveAsync();
+            _logger.LogInformation("Updated college {Id} ({Name} - {Dept}), count {Count}",
+                id, name, dept, dto.No_Students);
+
+            return (new CollegeResponseDTO
+            {
+                College_Id = college.Id,
+                Name = college.Name,
+                Dept = college.Dept,
+                No_Students = college.NO_Students
+            }, null);
+        }
+
             public async Task<bool> DeleteStudent(int id)
         {
             var stu = await _repo.GetByIdAsync(id);
