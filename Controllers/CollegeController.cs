@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using CollegeManagementApi.Models;
 using CollegeManagementApi.Interface;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CollegeManagementApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class CollegeController : ControllerBase
     {
         private readonly ICollegeService st_s;
@@ -16,6 +18,7 @@ namespace CollegeManagementApi.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAll()
         {
             var students = await st_s.GetAllStudents();
@@ -23,6 +26,7 @@ namespace CollegeManagementApi.Controllers
         }
 
         [HttpGet("{id}")]
+        
         public async Task<IActionResult> GetById(int id)
         {
             var student = await st_s.GetStudentById(id);
@@ -42,6 +46,7 @@ namespace CollegeManagementApi.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int id)
         {
             var deleted = await st_s.DeleteStudent(id);

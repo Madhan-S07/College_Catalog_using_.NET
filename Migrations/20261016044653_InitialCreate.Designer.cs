@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CollegeManagementApi.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20261013064619_AddNoStudents")]
-    partial class AddNoStudents
+    [Migration("20261016044653_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -39,6 +39,26 @@ namespace CollegeManagementApi.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("StudentsDetails");
+                });
+
+            modelBuilder.Entity("CollegeManagementApi.Models.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Password")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Users");
                 });
 #pragma warning restore 612, 618
         }
