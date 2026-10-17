@@ -57,7 +57,7 @@ namespace CollegeManagementApi.Services
                 _logger.LogInformation("Updated {Name} - {Dept}, new count {Count}",
                     existing.Name, existing.Dept, existing.NO_Students);
             }
-            else
+           else
             {
                 await _repo.AddAsync(new College
                 {
@@ -65,20 +65,28 @@ namespace CollegeManagementApi.Services
                     Dept = dept,
                     NO_Students = student.No_Students
                 });
+                _logger.LogInformation("Added new college {Name} - {Dept} with {Count} students",
+                    name, dept, student.No_Students);
             }
 
             await _repo.SaveAsync();
             return true;
         }
 
-        public async Task<bool> DeleteStudent(int id)
+            public async Task<bool> DeleteStudent(int id)
         {
             var stu = await _repo.GetByIdAsync(id);
-            if (stu == null) return false;
+            if (stu == null)
+            {
+                _logger.LogWarning("Delete failed: college {Id} not found", id);
+                return false;
+            }
 
             _repo.Remove(stu);
             await _repo.SaveAsync();
+            _logger.LogInformation("Deleted college {Id} ({Name} - {Dept})", id, stu.Name, stu.Dept);
             return true;
         }
-    }
+            
+        }
 }
